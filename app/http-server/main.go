@@ -8,8 +8,10 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/go-playground/validator/v10"
 	"github.com/julienschmidt/httprouter"
+	invCtrl "github.com/pobyzaarif/belajarGo2/app/http-server/controller/inventory"
+	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
+	invSvc "github.com/pobyzaarif/belajarGo2/service/inventory"
 	"github.com/pobyzaarif/belajarGo2/util/database"
 	cfg "github.com/pobyzaarif/go-config"
 )
@@ -49,72 +51,29 @@ func main() {
 		DBMySQLPassword: config.DBMySQLPassword,
 		DBMySQLName:     config.DBMySQLName,
 	}
-	_ = databaseConfig.GetDatabaseConnection()
+	db := databaseConfig.GetDatabaseConnection()
 	logger.Info("Database client connected!")
+
+	// Dependency Injection
+	inventoryRepo := invRepo.NewGormRepository(db)
+	inventorySvc := invSvc.NewService(inventoryRepo)
+	inventoryCtrl := invCtrl.NewController(logger, inventorySvc)
 
 	// Setup router
 	router := httprouter.New()
+
 	router.GET("/ping", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 	})
 
-	router.GET("/querypath/:id", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		id := p.ByName("id")
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(map[string]string{"message": id})
-	})
-
-	router.GET("/queryparam", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		queryParam := r.URL.Query()
-		a := map[string][]string{}
-		for k, v := range queryParam {
-			a[k] = v
-		}
-		spew.Dump(a["id"])
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
-	})
-
-	router.POST("/urlencoded", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		_ = json.NewEncoder(w).Encode(map[string]string{"message": "b"})
-	})
-
-	router.POST("/body", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		decoder := json.NewDecoder(r.Body)
-		type user struct {
-			Name string `json:"name" validate:"required"`
-			Age  int    `json:"age"`
-		}
-
-		u := user{}
-		err := decoder.Decode(&u)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(map[string]string{"message": "invalid request body"})
-			return
-		}
-
-		err = validator.New().Struct(u)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(map[string]string{"message": "invalid request body"})
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		_ = json.NewEncoder(w).Encode(map[string]string{"message": u.Name})
-	})
+	// Inventories routes
+	router.GET("/inventories", inventoryCtrl.GetAll)
+	router.GET("/inventories/:code", inventoryCtrl.GetByCode)
+	router.POST("/inventories", inventoryCtrl.Create)
+	router.PUT("/inventories/:code", inventoryCtrl.Update)
+	router.DELETE("/inventories/:code", inventoryCtrl.Delete)
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, err interface{}) {
 		logger.Error("Panic handler", slog.Any("error", err))
