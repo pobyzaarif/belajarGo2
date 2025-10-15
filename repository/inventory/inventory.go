@@ -26,7 +26,7 @@ func (r *GormRepository) Create(inv inventory.Inventory) (err error) {
 
 func (r *GormRepository) ReadAll(page int, limit int) (invs []inventory.Inventory, err error) {
 	ctx := context.Background()
-	r.DB.WithContext(ctx).Offset((page - 1) * limit).Limit(limit).Find(&invs)
+	r.DB.WithContext(ctx).Order("code DESC").Offset((page - 1) * limit).Limit(limit).Find(&invs)
 	return
 }
 
