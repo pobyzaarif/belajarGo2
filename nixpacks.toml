@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["go"]
-
-[phases.build]
-cmds = ["cd app/http-server && go build -o server ."]
-
-[start]
-cmd = "./app/http-server/server"
