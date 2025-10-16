@@ -23,12 +23,21 @@ type Config struct {
 	AppHost string `env:"APP_HOST"`
 	AppPort string `env:"APP_PORT"`
 
-	DBDriver        string `env:"DB_DRIVER"`
+	DBDriver string `env:"DB_DRIVER"`
+
 	DBMySQLHost     string `env:"DB_MYSQL_HOST"`
 	DBMySQLPort     string `env:"DB_MYSQL_PORT"`
 	DBMySQLUser     string `env:"DB_MYSQL_USER"`
 	DBMySQLPassword string `env:"DB_MYSQL_PASSWORD"`
 	DBMySQLName     string `env:"DB_MYSQL_NAME"`
+
+	DBSQLiteName string `env:"DB_SQLITE_NAME"`
+
+	DBPostgreSQLHost     string `env:"DB_POSTGRESQL_HOST"`
+	DBPostgreSQLPort     string `env:"DB_POSTGRESQL_PORT"`
+	DBPostgreSQLUser     string `env:"DB_POSTGRESQL_USER"`
+	DBPostgreSQLPassword string `env:"DB_POSTGRESQL_PASSWORD"`
+	DBPostgreSQLName     string `env:"DB_POSTGRESQL_NAME"`
 }
 
 func main() {
@@ -44,12 +53,18 @@ func main() {
 
 	// Init db connection
 	databaseConfig := database.Config{
-		DBDriver:        config.DBDriver,
-		DBMySQLHost:     config.DBMySQLHost,
-		DBMySQLPort:     config.DBMySQLPort,
-		DBMySQLUser:     config.DBMySQLUser,
-		DBMySQLPassword: config.DBMySQLPassword,
-		DBMySQLName:     config.DBMySQLName,
+		DBDriver:             config.DBDriver,
+		DBMySQLHost:          config.DBMySQLHost,
+		DBMySQLPort:          config.DBMySQLPort,
+		DBMySQLUser:          config.DBMySQLUser,
+		DBMySQLPassword:      config.DBMySQLPassword,
+		DBMySQLName:          config.DBMySQLName,
+		DBSQLiteName:         config.DBSQLiteName,
+		DBPostgreSQLHost:     config.DBPostgreSQLHost,
+		DBPostgreSQLPort:     config.DBPostgreSQLPort,
+		DBPostgreSQLUser:     config.DBPostgreSQLUser,
+		DBPostgreSQLPassword: config.DBPostgreSQLPassword,
+		DBPostgreSQLName:     config.DBPostgreSQLName,
 	}
 	db := databaseConfig.GetDatabaseConnection()
 	logger.Info("Database client connected!")
@@ -74,6 +89,18 @@ func main() {
 	router.POST("/inventories", inventoryCtrl.Create)
 	router.PUT("/inventories/:code", inventoryCtrl.Update)
 	router.DELETE("/inventories/:code", inventoryCtrl.Delete)
+
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"data":{}, "message":"route not found"}`))
+	})
+
+	router.MethodNotAllowed = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_, _ = w.Write([]byte(`{"data":{}, "message":"method not allowed"}`))
+	})
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, err interface{}) {
 		logger.Error("Panic handler", slog.Any("error", err))
