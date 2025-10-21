@@ -12,6 +12,9 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	invCtrl "github.com/pobyzaarif/belajarGo2/app/echo-server/controller/inventory"
+	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
+	invSvc "github.com/pobyzaarif/belajarGo2/service/inventory"
 	"github.com/pobyzaarif/belajarGo2/util/database"
 	cfg "github.com/pobyzaarif/go-config"
 )
@@ -23,12 +26,21 @@ type Config struct {
 	AppHost string `env:"APP_HOST"`
 	AppPort string `env:"APP_PORT"`
 
-	DBDriver        string `env:"DB_DRIVER"`
+	DBDriver string `env:"DB_DRIVER"`
+
 	DBMySQLHost     string `env:"DB_MYSQL_HOST"`
 	DBMySQLPort     string `env:"DB_MYSQL_PORT"`
 	DBMySQLUser     string `env:"DB_MYSQL_USER"`
 	DBMySQLPassword string `env:"DB_MYSQL_PASSWORD"`
 	DBMySQLName     string `env:"DB_MYSQL_NAME"`
+
+	DBSQLiteName string `env:"DB_SQLITE_NAME"`
+
+	DBPostgreSQLHost     string `env:"DB_POSTGRESQL_HOST"`
+	DBPostgreSQLPort     string `env:"DB_POSTGRESQL_PORT"`
+	DBPostgreSQLUser     string `env:"DB_POSTGRESQL_USER"`
+	DBPostgreSQLPassword string `env:"DB_POSTGRESQL_PASSWORD"`
+	DBPostgreSQLName     string `env:"DB_POSTGRESQL_NAME"`
 }
 
 func main() {
@@ -44,20 +56,26 @@ func main() {
 
 	// Init db connection
 	databaseConfig := database.Config{
-		DBDriver:        config.DBDriver,
-		DBMySQLHost:     config.DBMySQLHost,
-		DBMySQLPort:     config.DBMySQLPort,
-		DBMySQLUser:     config.DBMySQLUser,
-		DBMySQLPassword: config.DBMySQLPassword,
-		DBMySQLName:     config.DBMySQLName,
+		DBDriver:             config.DBDriver,
+		DBMySQLHost:          config.DBMySQLHost,
+		DBMySQLPort:          config.DBMySQLPort,
+		DBMySQLUser:          config.DBMySQLUser,
+		DBMySQLPassword:      config.DBMySQLPassword,
+		DBMySQLName:          config.DBMySQLName,
+		DBSQLiteName:         config.DBSQLiteName,
+		DBPostgreSQLHost:     config.DBPostgreSQLHost,
+		DBPostgreSQLPort:     config.DBPostgreSQLPort,
+		DBPostgreSQLUser:     config.DBPostgreSQLUser,
+		DBPostgreSQLPassword: config.DBPostgreSQLPassword,
+		DBPostgreSQLName:     config.DBPostgreSQLName,
 	}
-	_ = databaseConfig.GetDatabaseConnection()
+	db := databaseConfig.GetDatabaseConnection()
 	logger.Info("Database client connected!")
 
 	// Setup server
 	e := echo.New()
-	// e.HideBanner = true
-	// e.HidePort = true
+	e.HideBanner = true
+	e.HidePort = true
 
 	e.Use(middleware.CORS())
 	e.Use(middleware.LoggerWithConfig(
@@ -79,6 +97,12 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	// inventory endpoint
+	inventoryRepo := invRepo.NewGormRepository(db)
+	inventorySvc := invSvc.NewService(inventoryRepo)
+	inventoryCtrl := invCtrl.NewController(logger, inventorySvc)
+	e.GET("/inventory", inventoryCtrl.GetAll)
 
 	// Start server
 	address := config.AppHost + ":" + config.AppPort
