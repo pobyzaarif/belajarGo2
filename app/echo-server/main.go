@@ -102,11 +102,12 @@ func main() {
 	inventoryRepo := invRepo.NewGormRepository(db)
 	inventorySvc := invSvc.NewService(inventoryRepo)
 	inventoryCtrl := invCtrl.NewController(logger, inventorySvc)
-	e.GET("/inventory", inventoryCtrl.GetAll)
-	e.GET("/inventories/:code", inventoryCtrl.GetByCode)
-	e.POST("/inventories", inventoryCtrl.Create)
-	e.PUT("/inventories/:code", inventoryCtrl.Update)
-	e.DELETE("/inventories/:code", inventoryCtrl.Delete)
+	inventoryEndpoint := e.Group("/inventories")
+	inventoryEndpoint.GET("", inventoryCtrl.GetAll)
+	inventoryEndpoint.GET("/:code", inventoryCtrl.GetByCode)
+	inventoryEndpoint.POST("", inventoryCtrl.Create)
+	inventoryEndpoint.PUT("/:code", inventoryCtrl.Update)
+	inventoryEndpoint.DELETE("/:code", inventoryCtrl.Delete)
 
 	// Start server
 	address := config.AppHost + ":" + config.AppPort
