@@ -103,6 +103,10 @@ func main() {
 	inventorySvc := invSvc.NewService(inventoryRepo)
 	inventoryCtrl := invCtrl.NewController(logger, inventorySvc)
 	e.GET("/inventory", inventoryCtrl.GetAll)
+	e.GET("/inventories/:code", inventoryCtrl.GetByCode)
+	e.POST("/inventories", inventoryCtrl.Create)
+	e.PUT("/inventories/:code", inventoryCtrl.Update)
+	e.DELETE("/inventories/:code", inventoryCtrl.Delete)
 
 	// Start server
 	address := config.AppHost + ":" + config.AppPort

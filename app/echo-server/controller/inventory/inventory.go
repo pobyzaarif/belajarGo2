@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"log/slog"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pobyzaarif/belajarGo2/service/inventory"
@@ -30,6 +31,22 @@ type InventoryRequest struct {
 	Status      string `json:"status" validate:"required,oneof=active broken"`
 }
 
+func (ctrl *Controller) Create(c echo.Context) error {
+	return c.JSON(http.StatusCreated, map[string]interface{}{"message": "OK", "data": "data"})
+}
+
 func (ctrl *Controller) GetAll(c echo.Context) error {
-	return c.JSON(200, map[string]interface{}{"message": "OK", "data": "data"})
+	return c.JSON(http.StatusOK, map[string]interface{}{"message": "OK", "data": "data"})
+}
+
+func (ctrl *Controller) GetByCode(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]interface{}{"message": "OK", "data": "data"})
+}
+
+func (ctrl *Controller) Update(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]interface{}{"message": "OK", "data": "data"})
+}
+
+func (ctrl *Controller) Delete(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]interface{}{"message": "OK", "data": "data"})
 }
