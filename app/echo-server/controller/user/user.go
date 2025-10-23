@@ -73,6 +73,9 @@ func (ctrl *Controller) Login(c echo.Context) error {
 
 	accessToken, err := ctrl.userSvc.Login(request.Email, request.Password)
 	if err != nil {
+		if strings.Contains(err.Error(), "wrong email") {
+			return c.JSON(http.StatusUnauthorized, map[string]interface{}{"message": http.StatusText(http.StatusUnauthorized)})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{"message": http.StatusText(http.StatusInternalServerError)})
 	}
 
