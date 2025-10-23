@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	invCtrl "github.com/pobyzaarif/belajarGo2/app/echo-server/controller/inventory"
 	"github.com/pobyzaarif/belajarGo2/app/echo-server/controller/user"
+	"github.com/pobyzaarif/belajarGo2/app/echo-server/router"
 	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
 	userRepo "github.com/pobyzaarif/belajarGo2/repository/user"
 	invSvc "github.com/pobyzaarif/belajarGo2/service/inventory"
@@ -102,24 +103,22 @@ func main() {
 		})
 	})
 
-	// user endpoint
+	// user
 	userRepo := userRepo.NewGormRepository(db)
 	userSvc := userSvc.NewService(logger, userRepo, config.AppJWTSecret)
 	userCtrl := user.NewController(logger, userSvc)
-	userEndpoint := e.Group("/users")
-	userEndpoint.POST("/register", userCtrl.Register)
-	userEndpoint.POST("/login", userCtrl.Login)
 
-	// inventory endpoint
+	// inventory
 	inventoryRepo := invRepo.NewGormRepository(db)
 	inventorySvc := invSvc.NewService(inventoryRepo)
 	inventoryCtrl := invCtrl.NewController(logger, inventorySvc)
-	inventoryEndpoint := e.Group("/inventories")
-	inventoryEndpoint.GET("", inventoryCtrl.GetAll)
-	inventoryEndpoint.GET("/:code", inventoryCtrl.GetByCode)
-	inventoryEndpoint.POST("", inventoryCtrl.Create)
-	inventoryEndpoint.PUT("/:code", inventoryCtrl.Update)
-	inventoryEndpoint.DELETE("/:code", inventoryCtrl.Delete)
+
+	router.RegisterPath(
+		e,
+		config.AppJWTSecret,
+		inventoryCtrl,
+		userCtrl,
+	)
 
 	// Start server
 	address := config.AppHost + ":" + config.AppPort
