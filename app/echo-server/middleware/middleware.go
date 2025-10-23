@@ -53,7 +53,7 @@ func JWTMiddleware(jwtSign string) echo.MiddlewareFunc {
 				return forbiddenResponse(c)
 			}
 
-			if !expAt.After(time.Now()) {
+			if time.Now().After(expAt.Time) {
 				return forbiddenResponse(c)
 			}
 
