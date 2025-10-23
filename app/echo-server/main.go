@@ -13,8 +13,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	invCtrl "github.com/pobyzaarif/belajarGo2/app/echo-server/controller/inventory"
+	"github.com/pobyzaarif/belajarGo2/app/echo-server/controller/user"
 	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
+	userRepo "github.com/pobyzaarif/belajarGo2/repository/user"
 	invSvc "github.com/pobyzaarif/belajarGo2/service/inventory"
+	userSvc "github.com/pobyzaarif/belajarGo2/service/user"
 	"github.com/pobyzaarif/belajarGo2/util/database"
 	cfg "github.com/pobyzaarif/go-config"
 )
@@ -23,8 +26,9 @@ var loggerOption = slog.HandlerOptions{AddSource: true}
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, &loggerOption))
 
 type Config struct {
-	AppHost string `env:"APP_HOST"`
-	AppPort string `env:"APP_PORT"`
+	AppHost      string `env:"APP_HOST"`
+	AppPort      string `env:"APP_PORT"`
+	AppJWTSecret string `env:"APP_JWT_SECRET"`
 
 	DBDriver string `env:"DB_DRIVER"`
 
@@ -97,6 +101,14 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	// user endpoint
+	userRepo := userRepo.NewGormRepository(db)
+	userSvc := userSvc.NewService(logger, userRepo, config.AppJWTSecret)
+	userCtrl := user.NewController(logger, userSvc)
+	userEndpoint := e.Group("/users")
+	userEndpoint.POST("/register", userCtrl.Register)
+	userEndpoint.POST("/login", userCtrl.Login)
 
 	// inventory endpoint
 	inventoryRepo := invRepo.NewGormRepository(db)
