@@ -67,16 +67,7 @@ func JWTMiddleware(jwtSign string) echo.MiddlewareFunc {
 	}
 }
 
-func stringSliceContains(a []string, x string) bool {
-	for _, n := range a {
-		if x == n {
-			return true
-		}
-	}
-	return false
-}
-
-func RBACMiddleware(roles []string) echo.MiddlewareFunc {
+func ACLMiddleware(rolesMap map[string]bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			role, _ := c.Get("role").(string)
@@ -84,7 +75,7 @@ func RBACMiddleware(roles []string) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			if stringSliceContains(roles, role) {
+			if rolesMap[role] {
 				return next(c)
 			}
 
