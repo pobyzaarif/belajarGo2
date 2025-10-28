@@ -1,2 +1,4 @@
 .env
 belajarGo.db
+app/echo-server/docs/*
+!app/echo-server/docs/init.go
