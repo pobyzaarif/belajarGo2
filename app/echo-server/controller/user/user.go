@@ -31,6 +31,17 @@ type userRegisterRequest struct {
 	Fullname string `json:"fullname" validate:"required"`
 }
 
+// Register godoc
+// @Summary      Register a new user
+// @Description  Create a new user account with email, password, and fullname
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        request body userRegisterRequest true "User registration request"
+// @Success      201 {object} map[string]interface{} "Created"
+// @Failure      400 {object} map[string]interface{} "Bad Request"
+// @Failure      500 {object} map[string]interface{} "Internal Server Error"
+// @Router       /users/register [post]
 func (ctrl *Controller) Register(c echo.Context) error {
 	request := new(userRegisterRequest)
 	if err := c.Bind(request); err != nil {

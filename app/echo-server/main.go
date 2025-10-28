@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	invCtrl "github.com/pobyzaarif/belajarGo2/app/echo-server/controller/inventory"
 	"github.com/pobyzaarif/belajarGo2/app/echo-server/controller/user"
+	_ "github.com/pobyzaarif/belajarGo2/app/echo-server/docs"
 	"github.com/pobyzaarif/belajarGo2/app/echo-server/router"
 	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
 	userRepo "github.com/pobyzaarif/belajarGo2/repository/user"
@@ -21,6 +22,7 @@ import (
 	userSvc "github.com/pobyzaarif/belajarGo2/service/user"
 	"github.com/pobyzaarif/belajarGo2/util/database"
 	cfg "github.com/pobyzaarif/go-config"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 var loggerOption = slog.HandlerOptions{AddSource: true}
@@ -102,6 +104,8 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	e.GET("/swagger/*", echoSwagger.EchoWrapHandler())
 
 	// user
 	userRepo := userRepo.NewGormRepository(db)
