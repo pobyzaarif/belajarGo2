@@ -72,6 +72,18 @@ type userLoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// Login godoc
+// @Summary      Login to system
+// @Description  Login to system and jwt/access token
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        request body userLoginRequest true "User login request"
+// @Success      200 {object} map[string]interface{} "Status OK"
+// @Failure      400 {object} map[string]interface{} "Bad Request"
+// @Failure      401 {object} map[string]interface{} "Unauthorized"
+// @Failure      500 {object} map[string]interface{} "Internal Server Error"
+// @Router       /users/login [post]
 func (ctrl *Controller) Login(c echo.Context) error {
 	request := new(userLoginRequest)
 	if err := c.Bind(request); err != nil {
