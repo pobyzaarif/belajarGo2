@@ -2,18 +2,21 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/pobyzaarif/belajarGo2/service/notification"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
-	logger  *slog.Logger
-	repo    Repository
-	jwtSign string
+	logger    *slog.Logger
+	repo      Repository
+	jwtSign   string
+	notifRepo notification.Repository
 }
 
 type Service interface {
@@ -26,13 +29,20 @@ func NewService(
 	logger *slog.Logger,
 	repo Repository,
 	jwtSign string,
+	notifRepo notification.Repository,
 ) Service {
 	return &service{
-		logger:  logger,
-		repo:    repo,
-		jwtSign: jwtSign,
+		logger:    logger,
+		repo:      repo,
+		jwtSign:   jwtSign,
+		notifRepo: notifRepo,
 	}
 }
+
+const (
+	SubjectRegisterAccount   = "Activate Your Account!"
+	EmailBodyRegisterAccount = `Halo, %v, Aktivasi akun anda dengan membuka tautan dibawah<br/><br/>%v`
+)
 
 func (s *service) Register(user User) (id string, err error) {
 	// Find user by email
@@ -56,8 +66,16 @@ func (s *service) Register(user User) (id string, err error) {
 	user.Password = string(encPassword)
 	user.Role = "user"
 
+	if err = s.repo.Create(user); err != nil {
+		return
+	}
+
+	activationLink := "http://localhost:8000/users/verify-email/sadasd"
+
+	_ = s.notifRepo.SendEmail(user.Fullname, user.Email, SubjectRegisterAccount, fmt.Sprintf(EmailBodyRegisterAccount, user.Fullname, activationLink))
+
 	// Create user
-	return "0", s.repo.Create(user)
+	return "0", nil
 }
 
 func (s *service) Login(email string, password string) (accessToken string, err error) {

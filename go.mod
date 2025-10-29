@@ -8,6 +8,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/pobyzaarif/go-config v1.0.0
+	github.com/pobyzaarif/goshortcute v0.0.0-20201207122223-c3d339075495
 	github.com/swaggo/swag v1.16.6
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0

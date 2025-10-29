@@ -17,6 +17,7 @@ import (
 	_ "github.com/pobyzaarif/belajarGo2/app/echo-server/docs"
 	"github.com/pobyzaarif/belajarGo2/app/echo-server/router"
 	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
+	"github.com/pobyzaarif/belajarGo2/repository/notification/mailjet"
 	userRepo "github.com/pobyzaarif/belajarGo2/repository/user"
 	invSvc "github.com/pobyzaarif/belajarGo2/service/inventory"
 	userSvc "github.com/pobyzaarif/belajarGo2/service/user"
@@ -48,6 +49,12 @@ type Config struct {
 	DBPostgreSQLUser     string `env:"DB_POSTGRESQL_USER"`
 	DBPostgreSQLPassword string `env:"DB_POSTGRESQL_PASSWORD"`
 	DBPostgreSQLName     string `env:"DB_POSTGRESQL_NAME"`
+
+	MailjetBaseUrl           string `env:"MAILJET_BASE_URL"`
+	MailjetBasicAuthUsername string `env:"MAILJET_BASIC_AUTH_USERNAME"`
+	MailjetBasicAuthPassword string `env:"MAILJET_BASIC_AUTH_PASSWORD"`
+	MailjetSenderEmail       string `env:"MAILJET_SENDER_EMAIL"`
+	MailjetSenderName        string `env:"MAILJET_SENDER_NAME"`
 }
 
 func main() {
@@ -107,9 +114,21 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.EchoWrapHandler())
 
+	// notification
+	mailjetEmail := mailjet.NewMailjetRepository(
+		logger,
+		mailjet.MailjetConfig{
+			MailjetBaseURL:           config.MailjetBaseUrl,
+			MailjetBasicAuthUsername: config.MailjetBasicAuthUsername,
+			MailjetBasicAuthPassword: config.MailjetBasicAuthPassword,
+			MailjetSenderEmail:       config.MailjetSenderEmail,
+			MailjetSenderName:        config.MailjetSenderName,
+		},
+	)
+
 	// user
 	userRepo := userRepo.NewGormRepository(db)
-	userSvc := userSvc.NewService(logger, userRepo, config.AppJWTSecret)
+	userSvc := userSvc.NewService(logger, userRepo, config.AppJWTSecret, mailjetEmail)
 	userCtrl := user.NewController(logger, userSvc)
 
 	// inventory
