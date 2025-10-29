@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -82,4 +83,10 @@ func ACLMiddleware(rolesMap map[string]bool) echo.MiddlewareFunc {
 			return forbiddenResponse(c)
 		}
 	}
+}
+
+func JwtEchoMiddleware(jwtSign string) echo.MiddlewareFunc {
+	return echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(jwtSign),
+	})
 }
