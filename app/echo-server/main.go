@@ -17,6 +17,7 @@ import (
 	_ "github.com/pobyzaarif/belajarGo2/app/echo-server/docs"
 	"github.com/pobyzaarif/belajarGo2/app/echo-server/router"
 	invRepo "github.com/pobyzaarif/belajarGo2/repository/inventory"
+	"github.com/pobyzaarif/belajarGo2/repository/notification/mailjet"
 	userRepo "github.com/pobyzaarif/belajarGo2/repository/user"
 	invSvc "github.com/pobyzaarif/belajarGo2/service/inventory"
 	userSvc "github.com/pobyzaarif/belajarGo2/service/user"
@@ -29,9 +30,11 @@ var loggerOption = slog.HandlerOptions{AddSource: true}
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, &loggerOption))
 
 type Config struct {
-	AppHost      string `env:"APP_HOST"`
-	AppPort      string `env:"APP_PORT"`
-	AppJWTSecret string `env:"APP_JWT_SECRET"`
+	AppHost                 string `env:"APP_HOST"`
+	AppPort                 string `env:"APP_PORT"`
+	AppDeploymentUrl        string `env:"APP_DEPLOYMENT_URL"`
+	AppEmailVerificationKey string `env:"APP_EMAIL_VERIFICATION_KEY"`
+	AppJWTSecret            string `env:"APP_JWT_SECRET"`
 
 	DBDriver string `env:"DB_DRIVER"`
 
@@ -48,6 +51,12 @@ type Config struct {
 	DBPostgreSQLUser     string `env:"DB_POSTGRESQL_USER"`
 	DBPostgreSQLPassword string `env:"DB_POSTGRESQL_PASSWORD"`
 	DBPostgreSQLName     string `env:"DB_POSTGRESQL_NAME"`
+
+	MailjetBaseUrl           string `env:"MAILJET_BASE_URL"`
+	MailjetBasicAuthUsername string `env:"MAILJET_BASIC_AUTH_USERNAME"`
+	MailjetBasicAuthPassword string `env:"MAILJET_BASIC_AUTH_PASSWORD"`
+	MailjetSenderEmail       string `env:"MAILJET_SENDER_EMAIL"`
+	MailjetSenderName        string `env:"MAILJET_SENDER_NAME"`
 }
 
 func main() {
@@ -107,9 +116,28 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.EchoWrapHandler())
 
+	// notification
+	mailjetEmail := mailjet.NewMailjetRepository(
+		logger,
+		mailjet.MailjetConfig{
+			MailjetBaseURL:           config.MailjetBaseUrl,
+			MailjetBasicAuthUsername: config.MailjetBasicAuthUsername,
+			MailjetBasicAuthPassword: config.MailjetBasicAuthPassword,
+			MailjetSenderEmail:       config.MailjetSenderEmail,
+			MailjetSenderName:        config.MailjetSenderName,
+		},
+	)
+
 	// user
 	userRepo := userRepo.NewGormRepository(db)
-	userSvc := userSvc.NewService(logger, userRepo, config.AppJWTSecret)
+	userSvc := userSvc.NewService(
+		logger,
+		userRepo,
+		config.AppDeploymentUrl,
+		config.AppJWTSecret,
+		config.AppEmailVerificationKey,
+		mailjetEmail,
+	)
 	userCtrl := user.NewController(logger, userSvc)
 
 	// inventory
