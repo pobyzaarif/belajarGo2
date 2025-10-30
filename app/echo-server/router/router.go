@@ -41,6 +41,7 @@ func RegisterPath(
 	userEndpoint := e.Group("/users")
 	userEndpoint.POST("/register", ctrlUser.Register)
 	userEndpoint.POST("/login", ctrlUser.Login)
+	userEndpoint.GET("/email-verification/:code", ctrlUser.VerifyEmail)
 
 	// Inventory endpoint
 	inventoryEndpoint := e.Group("/inventories", jwtMiddleware)
