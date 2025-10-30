@@ -55,7 +55,7 @@ func NewService(
 
 const (
 	SubjectRegisterAccount   = "Activate Your Account!"
-	EmailBodyRegisterAccount = `Halo, %v, Aktivasi akun anda dengan membuka tautan dibawah<br/><br/>%v`
+	EmailBodyRegisterAccount = `Halo, %v, Aktivasi akun anda dengan membuka tautan dibawah<br/><br/>%v<br/>catatan: link hanya berlaku %v menit`
 )
 
 func (s *service) Register(user User) (id string, err error) {
@@ -91,7 +91,7 @@ func (s *service) Register(user User) (id string, err error) {
 	verificationCodeEncrypt, _ := goshortcute.AESCBCEncrypt([]byte(verificationCode), []byte(s.appEmailVerificationKey))
 	activationLink := s.appDeploymentUrl + "/users/email-verification/" + verificationCodeEncrypt
 
-	_ = s.notifRepo.SendEmail(user.Fullname, user.Email, SubjectRegisterAccount, fmt.Sprintf(EmailBodyRegisterAccount, user.Fullname, activationLink))
+	_ = s.notifRepo.SendEmail(user.Fullname, user.Email, SubjectRegisterAccount, fmt.Sprintf(EmailBodyRegisterAccount, user.Fullname, activationLink, verificationCodeTTL))
 
 	// Create user
 	return "0", nil
