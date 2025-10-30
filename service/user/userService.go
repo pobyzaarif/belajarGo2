@@ -129,6 +129,11 @@ func (s *service) VerifyEmail(verificationCodeEncrypt string) (err error) {
 		return err
 	}
 
+	if getUser.IsEmailVerified {
+		s.logger.Warn("verify email err", slog.Any("err", "email verified already"))
+		return errors.New("invalid or expired url")
+	}
+
 	getUser.IsEmailVerified = true
 	if err := s.repo.UpdateEmailVerification(getUser); err != nil {
 		s.logger.Error("verify email err", slog.Any("err", err))
