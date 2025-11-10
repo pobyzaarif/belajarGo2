@@ -52,6 +52,9 @@ type Config struct {
 	DBPostgreSQLPassword string `env:"DB_POSTGRESQL_PASSWORD"`
 	DBPostgreSQLName     string `env:"DB_POSTGRESQL_NAME"`
 
+	DBMongoURI  string `env:"DB_MONGO_URI"`
+	DBMongoName string `env:"DB_MONGO_NAME"`
+
 	MailjetBaseUrl           string `env:"MAILJET_BASE_URL"`
 	MailjetBasicAuthUsername string `env:"MAILJET_BASIC_AUTH_USERNAME"`
 	MailjetBasicAuthPassword string `env:"MAILJET_BASIC_AUTH_PASSWORD"`
@@ -84,6 +87,8 @@ func main() {
 		DBPostgreSQLUser:     config.DBPostgreSQLUser,
 		DBPostgreSQLPassword: config.DBPostgreSQLPassword,
 		DBPostgreSQLName:     config.DBPostgreSQLName,
+		DBMongoURI:           config.DBMongoURI,
+		DBMongoName:          config.DBMongoName,
 	}
 	db := databaseConfig.GetDatabaseConnection()
 	logger.Info("Database client connected!")
@@ -129,10 +134,12 @@ func main() {
 	)
 
 	// user
-	userRepo := userRepo.NewGormRepository(db)
+	dbMongo := databaseConfig.GetNoSQLDatabaseConnection()
+	userMongoRepo := userRepo.NewMongoRepository(dbMongo)
+	// userRepo := userRepo.NewGormRepository(db)
 	userSvc := userSvc.NewService(
 		logger,
-		userRepo,
+		userMongoRepo,
 		config.AppDeploymentUrl,
 		config.AppJWTSecret,
 		config.AppEmailVerificationKey,
