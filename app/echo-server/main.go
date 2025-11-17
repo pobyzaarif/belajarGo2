@@ -30,6 +30,7 @@ var loggerOption = slog.HandlerOptions{AddSource: true}
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, &loggerOption))
 
 type Config struct {
+	AppVersion              string `env:"APP_VERSION"`
 	AppHost                 string `env:"APP_PHOST"`
 	AppPort                 string `env:"APP_PORT_ECHO_SERVER"`
 	AppDeploymentUrl        string `env:"APP_DEPLOYMENT_URL"`
@@ -113,9 +114,9 @@ func main() {
 	e.Pre(middleware.Recover())
 
 	// Setup routes
-	e.GET("/ping", func(c echo.Context) error {
+	e.GET("/", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{
-			"message": "pong",
+			"message": config.AppVersion,
 		})
 	})
 
