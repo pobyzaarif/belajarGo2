@@ -101,6 +101,11 @@ func (c *Controller) GetAll(w http.ResponseWriter, r *http.Request, _ httprouter
 
 func (c *Controller) GetByCode(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	code := p.ByName("code")
+	if code == "" {
+		common.ErrorValidation(w, errors.New("code parameter is required"))
+		return
+	}
+
 	inv, err := c.inventorySvc.GetByCode(code)
 	if err != nil {
 		common.ErrorInternal(w)
