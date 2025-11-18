@@ -134,13 +134,15 @@ func main() {
 		},
 	)
 
-	// user
+	// mongo db repo
 	dbMongo := databaseConfig.GetNoSQLDatabaseConnection()
-	userMongoRepo := userRepo.NewMongoRepository(dbMongo)
-	// userRepo := userRepo.NewGormRepository(db)
+
+	// user
+	// userMongoRepo := userRepo.NewMongoRepository(dbMongo)
+	userRepo := userRepo.NewGormRepository(db)
 	userSvc := userSvc.NewService(
 		logger,
-		userMongoRepo,
+		userRepo,
 		config.AppDeploymentUrl,
 		config.AppJWTSecret,
 		config.AppEmailVerificationKey,
@@ -149,8 +151,9 @@ func main() {
 	userCtrl := user.NewController(logger, userSvc)
 
 	// inventory
-	inventoryRepo := invRepo.NewGormRepository(db)
-	inventorySvc := invSvc.NewService(inventoryRepo)
+	// inventoryRepo := invRepo.NewGormRepository(db)
+	inventoryMongoRepo := invRepo.NewMongoRepository(dbMongo)
+	inventorySvc := invSvc.NewService(inventoryMongoRepo)
 	inventoryCtrl := invCtrl.NewController(logger, inventorySvc)
 
 	router.RegisterPath(
