@@ -1,0 +1,18 @@
+syntax = "proto3";
+package inventory;
+
+option go_package = "./inventory";
+
+enum InventoryStatus {
+    INVENTORY_STATUS_UNSPECIFIED = 0;
+    ACTIVE = 1;
+    BROKEN = 2;
+}
+
+message InventoryRequest {
+    string code = 1;
+    string name = 2;
+    int32 stock = 3;
+    string description = 4;
+    InventoryStatus status = 5;
+}
